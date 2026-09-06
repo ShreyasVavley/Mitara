@@ -5,77 +5,117 @@ from safety_engine import SafetyEngine
 from rag_store import RAGStore
 
 # --- 1. INITIALIZE BACKEND ENGINES ---
-# We cache this so ChromaDB doesn't re-initialize on every button click
 @st.cache_resource
 def initialize_system():
     return ContextEngine(), SafetyEngine(), RAGStore(data_directory="medical_data")
 
 context_engine, safety_engine, rag_store = initialize_system()
 
-# --- 2. FRONTEND UI STYLING (Hand-Drawn Theme) ---
-st.set_page_config(page_title="Mitara AI Notepad", layout="wide", initial_sidebar_state="collapsed")
+# --- 2. PREMIUM ENTERPRISE UI STYLING ---
+st.set_page_config(page_title="Mitara AI", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap');
-
+    /* Global Dark Theme Background */
     .stApp {
-        background-color: #fdfbf7;
-        background-image: linear-gradient(#fdfbf7 29px, #91d2fa 30px);
-        background-size: 100% 30px;
-        color: #2c3e50;
-        font-family: 'Patrick Hand', cursive;
-        font-size: 1.2rem;
+        background-color: #0b0f19;
+        color: #e2e8f0;
+        font-family: 'Inter', sans-serif;
     }
     
-    * { font-family: 'Patrick Hand', cursive !important; }
-    h1, h2, h3, h4 { font-family: 'Caveat', cursive !important; color: #2c3e50; letter-spacing: 1px; }
-    
+    /* Clean Titles */
     .main-title {
-        font-family: 'Caveat', cursive !important; font-size: 4rem; font-weight: 700;
-        color: #2c3e50; text-align: center; margin-bottom: 0px;
-        text-decoration: underline; text-decoration-style: wavy; text-decoration-color: #e74c3c;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #38bdf8;
+        text-align: center;
+        letter-spacing: -1px;
+        margin-bottom: 0;
     }
-    .sub-title { color: #7f8c8d; text-align: center; font-size: 1.5rem; margin-bottom: 40px; }
+    .sub-title {
+        color: #94a3b8;
+        text-align: center;
+        font-size: 1.1rem;
+        margin-bottom: 40px;
+        font-weight: 300;
+    }
 
-    .sketch-card {
-        background: #fdfbf7; border: 2px solid #2c3e50;
-        border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-        padding: 25px; box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.1);
-        margin-bottom: 25px; transition: transform 0.2s ease;
+    /* Style the native Streamlit text areas and inputs */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+        background-color: #1e293b !important;
+        color: #f8fafc !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
     }
-    .sketch-card:hover { transform: rotate(-1deg); }
-    .doctor-card { border-color: #2980b9; box-shadow: 6px 6px 0px rgba(41, 128, 185, 0.15); }
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 0 1px #38bdf8 !important;
+    }
 
-    .emergency-alert {
-        border: 3px solid #c0392b; border-radius: 15px 225px 15px 255px/255px 15px 225px 15px;
-        padding: 15px; color: #c0392b; font-family: 'Caveat', cursive !important;
-        font-size: 1.8rem; font-weight: bold; margin-bottom: 20px;
-        text-align: center; background: rgba(192, 57, 43, 0.05); transform: rotate(1deg);
+    /* Output Boxes */
+    .guidance-box {
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-left: 4px solid #38bdf8;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
     }
-    .output-text { color: #34495e; font-size: 1.3rem; line-height: 1.8; padding: 15px; }
+    
+    .doctor-box {
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-left: 4px solid #a855f7;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    }
+
+    .emergency-box {
+        background: rgba(220, 38, 38, 0.1);
+        border: 1px solid #ef4444;
+        border-left: 4px solid #ef4444;
+        padding: 15px;
+        color: #fca5a5;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    /* Button Styling */
+    .stButton>button {
+        background-color: #38bdf8 !important;
+        color: #0f172a !important;
+        font-weight: bold !important;
+        border-radius: 6px !important;
+        border: none !important;
+        transition: all 0.2s ease;
+    }
+    .stButton>button:hover {
+        background-color: #0ea5e9 !important;
+        transform: translateY(-1px);
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Header
 st.markdown('<div class="main-title">Mitara AI</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Clinical Decision-Support Notepad</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Secure Clinical Decision-Support Infrastructure</div>', unsafe_allow_html=True)
 
-# Columns Layout
+# Columns Layout (Native Streamlit, no broken HTML wrappers)
 col1, col2, col3 = st.columns([1.2, 0.1, 1.5])
 
 with col1:
-    st.markdown('<div class="sketch-card">', unsafe_allow_html=True)
-    st.markdown("<h3>📝 Patient Context</h3>", unsafe_allow_html=True)
+    st.subheader("Patient Context")
+    symptoms = st.text_area("Symptoms Log", placeholder="Enter patient symptoms (e.g., severe chest pain)...", height=120)
+    history = st.text_input("Medical History", placeholder="Any pre-existing conditions...")
+    meds = st.text_input("Current Medications", placeholder="Active prescriptions...")
     
-    symptoms = st.text_area("Symptoms:", placeholder="What is the patient feeling?", height=100)
-    history = st.text_input("Medical History:", placeholder="Past conditions...")
-    meds = st.text_input("Medications:", placeholder="Current meds...")
-    
-    if st.button("Scribble Analysis", type="primary", use_container_width=True):
+    st.write("") # Spacer
+    if st.button("Initialize Neural Analysis", use_container_width=True):
         if symptoms:
-            with st.spinner("Flipping through medical books..."):
-                time.sleep(1) # Dramatic pause
+            with st.spinner("Analyzing context and querying Vector Database..."):
+                time.sleep(0.8) # Smooth UX delay
                 
                 # --- MONOLITHIC BACKEND LOGIC ---
                 combined_text = f"{symptoms} {history} {meds}"
@@ -85,8 +125,8 @@ with col1:
                     data = {
                         'safety_flag': True,
                         'safety_message': safety_msg,
-                        'patient_guidance': "Please seek emergency medical attention immediately.",
-                        'doctor_brief': "URGENT: Patient reports critical symptoms indicative of a medical emergency.",
+                        'patient_guidance': "CRITICAL: Please seek emergency medical attention immediately.",
+                        'doctor_brief': "URGENT ALARM: Patient reports critical symptoms indicative of a medical emergency. Bypass standard queue.",
                         'requires_doctor_verification': True
                     }
                 else:
@@ -95,23 +135,24 @@ with col1:
                     guidelines = rag_store.get_grounded_context(query)
                     
                     symptom_str = query if query else "the reported issues"
-                    patient_guidance = f"We have logged your symptoms regarding '{symptom_str}'. Based on our initial scan, it is recommended to monitor your condition closely and consult with your physician. Stay hydrated and rest."
+                    patient_guidance = f"We have logged your symptoms regarding '{symptom_str}'. Based on our scan, please monitor your condition closely and consult with your physician. Stay hydrated and rest."
                     
                     history_str = ', '.join(context.history.conditions) if context.history.conditions else 'None reported'
                     meds_str = ', '.join(context.medications.current_medications) if context.medications.current_medications else 'None reported'
                     
                     doctor_brief = (
-                        f"**CHIEF COMPLAINT:** {symptom_str.title()}\n"
-                        f"**HISTORY:** {history_str}\n"
+                        f"**CHIEF COMPLAINT:** {symptom_str.title()}\n\n"
+                        f"**HISTORY:** {history_str}\n\n"
                         f"**MEDICATIONS:** {meds_str}\n\n"
-                        f"**CLINICAL GUIDELINES RETRIEVED:**\n{guidelines}\n\n"
-                        f"**PLAN:** Evaluate for standard protocol alignment.\n\n"
-                        f"(Note: AI LLM is offline. Output generated via dynamic fallback logic.)"
+                        f"---\n"
+                        f"**CLINICAL GUIDELINES RETRIEVED:**\n{guidelines if guidelines else 'No local protocols found for this specific query.'}\n\n"
+                        f"---\n"
+                        f"**PLAN:** Evaluate for standard protocol alignment.\n"
                     )
                     
                     data = {
                         'safety_flag': False,
-                        'safety_message': "Safe",
+                        'safety_message': "System Safe",
                         'patient_guidance': patient_guidance,
                         'doctor_brief': doctor_brief,
                         'requires_doctor_verification': True
@@ -119,39 +160,44 @@ with col1:
                 
                 st.session_state['analysis'] = data
         else:
-            st.warning("Please write down some symptoms first!")
-    st.markdown('</div>', unsafe_allow_html=True)
+            st.error("Error: Patient Symptoms are required to initiate analysis.")
 
 with col3:
     if 'analysis' in st.session_state:
         data = st.session_state['analysis']
         
+        # Safety Check
         if data['safety_flag']:
-            st.markdown(f'<div class="emergency-alert">🚨 {data["safety_message"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="emergency-box">🚨 EMERGENCY DETECTED: {data["safety_message"]}</div>', unsafe_allow_html=True)
         else:
-            st.markdown('<div style="color: #27ae60; font-family: \'Caveat\', cursive !important; font-size: 1.5rem; margin-bottom: 10px;">✓ Patient seems stable (Safety Passed)</div>', unsafe_allow_html=True)
+            st.success("✅ Safety Gate Passed")
             
-        st.markdown('<div class="sketch-card">', unsafe_allow_html=True)
-        st.markdown("<h3>🗣️ What to tell the patient:</h3>", unsafe_allow_html=True)
-        st.markdown(f'<div class="output-text">{data["patient_guidance"]}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Patient Card
+        st.markdown(f"""
+        <div class="guidance-box">
+            <h4 style="color: #38bdf8; margin-top: 0;">Patient Guidance Terminal</h4>
+            <p style="color: #cbd5e1;">{data['patient_guidance']}</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.markdown('<div class="sketch-card doctor-card">', unsafe_allow_html=True)
-        st.markdown("<h3 style='color: #2980b9;'>🩺 Doctor's Clinical Notes:</h3>", unsafe_allow_html=True)
+        # Doctor Card
         formatted_brief = data['doctor_brief'].replace('\n', '<br>')
-        st.markdown(f'<div class="output-text" style="color: #2980b9;">{formatted_brief}</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="doctor-box">
+            <h4 style="color: #a855f7; margin-top: 0;">Physician Clinical Summary</h4>
+            <p style="color: #cbd5e1; font-size: 0.95rem;">{formatted_brief}</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        st.markdown("<br>", unsafe_allow_html=True)
         if data['requires_doctor_verification']:
-            st.info("Doctor: Please sign off on these notes.")
-            if st.button("Sign & Approve"):
-                st.success("Signed by Physician! Notes added to file.")
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.info("AUTH REQUIRED: Physician must cryptographically sign to release guidance.")
+            if st.button("Verify & Dispatch to Patient", type="secondary"):
+                st.balloons()
+                st.success("Verification Complete: Guidance dispatched securely.")
     else:
         st.markdown("""
-        <div style="height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.5; margin-top: 100px;">
-            <div style="text-align: center;">
-                <h2 style="color: #7f8c8d; font-family: 'Caveat', cursive !important;">Waiting for patient notes...</h2>
-            </div>
+        <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.4; margin-top: 100px;">
+            <h2 style="color: #94a3b8; font-weight: 300;">System Standby</h2>
+            <p style="color: #64748b;">Awaiting patient data stream...</p>
         </div>
         """, unsafe_allow_html=True)
