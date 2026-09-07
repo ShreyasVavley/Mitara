@@ -4,7 +4,6 @@ from context_engine import ContextEngine
 from safety_engine import SafetyEngine
 from rag_store import RAGStore
 
-# Cache the initialization so it doesn't reload the DB every time
 @st.cache_resource
 def load_systems():
     return ContextEngine(), SafetyEngine(), RAGStore(data_directory="medical_data")
@@ -13,68 +12,79 @@ ctx_engine, safety, rag = load_systems()
 
 st.set_page_config(page_title="Mitara AI", layout="wide")
 
-# Simple Black & White styling
+# Bento Box CSS & Fix Input Colors
 st.markdown("""
 <style>
+    /* Global Background */
     .stApp {
+        background-color: #f3f4f6;
+    }
+    
+    /* Bento Box Containers */
+    .bento-box {
         background-color: #ffffff;
-        color: #000000;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 20px;
+        border: 1px solid #e5e7eb;
     }
-    h1, h2, h3, h4, p, label {
-        color: #000000 !important;
+    
+    .bento-alert {
+        background-color: #fef2f2;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+        border: 1px solid #f87171;
+        color: #991b1b;
+        font-weight: 600;
     }
-    .stButton>button {
-        background-color: #000000;
-        color: #ffffff;
-        border: 1px solid #000000;
-        border-radius: 0px;
-    }
-    .stButton>button:hover {
-        background-color: #333333;
-        color: #ffffff;
-        border: 1px solid #333333;
-    }
+    
+    /* Force Input Text Colors Explicitly */
     .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #ffffff;
-        color: #000000;
-        border: 1px solid #000000;
-        border-radius: 0px;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border-radius: 12px !important;
+        border: 1px solid #d1d5db !important;
     }
     .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
         border-color: #000000 !important;
-        box-shadow: none !important;
+        box-shadow: 0 0 0 1px #000000 !important;
     }
-    .output-box {
-        border: 1px solid #000000;
-        padding: 20px;
-        margin-bottom: 20px;
+    
+    /* Header Bento */
+    .bento-header {
         background-color: #ffffff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        border: 1px solid #e5e7eb;
     }
-    .alert-box {
-        border: 2px solid #000000;
-        padding: 15px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        background-color: #f8f9fa;
-        text-transform: uppercase;
-    }
+    
+    h1, h3, p { color: #111827 !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Mitara AI")
-st.markdown("Clinical Decision Support System")
-st.markdown("---")
+# Header Bento
+st.markdown("""
+<div class="bento-header">
+    <h1 style="margin:0; font-size: 28px;">Mitara AI</h1>
+    <p style="margin:0; color: #6b7280 !important; font-size: 16px;">Clinical Decision Support System</p>
+</div>
+""", unsafe_allow_html=True)
 
-col1, col2 = st.columns([1, 1.2])
+col1, col2, col3 = st.columns([1, 0.05, 1.2])
 
 with col1:
-    st.subheader("Patient Input")
+    st.markdown('<h3 style="margin-bottom: 15px;">Patient Input</h3>', unsafe_allow_html=True)
     symptoms = st.text_area("Symptoms", placeholder="Enter symptoms...")
     history = st.text_input("Medical History", placeholder="Enter history...")
     meds = st.text_input("Medications", placeholder="Enter medications...")
     
     st.write("") 
-    if st.button("Run Analysis"):
+    if st.button("Run Analysis", use_container_width=True):
         if not symptoms:
             st.error("Symptoms are required.")
         else:
@@ -104,31 +114,35 @@ with col1:
                         'doctor_text': f"Chief Complaint: {symptom_display}\n\nGuidelines Found:\n{retrieved_docs if retrieved_docs else 'None'}\n\nPlan: Standard evaluation."
                     }
 
-with col2:
+with col3:
     if 'result' in st.session_state:
         res = st.session_state['result']
         
         if not res['is_safe']:
-            st.markdown(f'<div class="alert-box">CRITICAL ALERT: {res["alert"]}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="bento-alert">⚠️ CRITICAL ALERT: {res["alert"]}</div>', unsafe_allow_html=True)
         else:
-            st.success("Safety Check: Passed")
+            st.markdown('<div class="bento-box" style="padding: 15px; color: #047857; background-color: #ecfdf5; border-color: #a7f3d0; font-weight: bold;">✅ Safety Check: Passed</div>', unsafe_allow_html=True)
             
         st.markdown(f"""
-        <div class="output-box">
-            <strong>Patient Guidance</strong><br><br>
-            {res['patient_text']}
+        <div class="bento-box">
+            <strong style="font-size: 18px;">Patient Guidance</strong><br><br>
+            <span style="color: #4b5563;">{res['patient_text']}</span>
         </div>
         """, unsafe_allow_html=True)
         
         doctor_html = res['doctor_text'].replace('\n', '<br>')
         st.markdown(f"""
-        <div class="output-box">
-            <strong>Physician Summary</strong><br><br>
-            {doctor_html}
+        <div class="bento-box">
+            <strong style="font-size: 18px;">Physician Summary</strong><br><br>
+            <span style="color: #4b5563;">{doctor_html}</span>
         </div>
         """, unsafe_allow_html=True)
         
         if st.button("Sign & Approve"):
             st.success("Approved by physician.")
     else:
-        st.write("Awaiting input...")
+        st.markdown("""
+        <div class="bento-box" style="text-align: center; color: #9ca3af; padding: 60px 20px;">
+            Awaiting input data...
+        </div>
+        """, unsafe_allow_html=True)
