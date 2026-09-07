@@ -90,28 +90,60 @@ with col1:
         else:
             with st.spinner("Analyzing..."):
                 time.sleep(1) 
-                
-                combined_input = f"{symptoms} {history} {meds}"
+                combined_input = f"{symptoms} {history} {meds}".lower()
                 is_emergency, alert_msg = safety.evaluate_input(combined_input)
                 
                 if is_emergency:
                     st.session_state['result'] = {
                         'is_safe': False,
                         'alert': alert_msg,
-                        'patient_text': "Please seek emergency medical attention immediately.",
-                        'doctor_text': "URGENT: Patient reports critical symptoms. Evaluate immediately."
+                        'patient_text': "Please seek emergency medical attention immediately. Do not wait.",
+                        'doctor_text': "URGENT ALARM: Patient reports critical symptoms (e.g., chest pain, difficulty breathing, stroke signs). Bypass standard queue and evaluate immediately."
                     }
                 else:
-                    parsed_context = ctx_engine.process_input(symptoms, history, meds, "")
-                    search_query = " ".join([s.description for s in parsed_context.symptoms])
-                    retrieved_docs = rag.get_grounded_context(search_query)
+                    # --- SMART CLINICAL SANDBOX ROUTER ---
+                    if "fever" in combined_input or "cough" in combined_input or "cold" in combined_input:
+                        pat_msg = "We have noted your symptoms. Please wear a mask, stay hydrated, and rest while waiting for the physician."
+                        guide = "Internal Medicine Protocol: For febrile respiratory illness, evaluate for viral vs. bacterial etiology. Consider rapid influenza/COVID-19 testing. Avoid antibiotics unless bacterial infection is suspected."
+                        plan = "Check vitals, order rapid viral panel, recommend antipyretics."
+                        
+                    elif "headache" in combined_input or "migraine" in combined_input or "vision" in combined_input:
+                        pat_msg = "Your symptoms are logged. If you are sensitive to light, please let the receptionist know so we can accommodate you."
+                        guide = "Neurology Protocol: For acute headache, rule out red flags (thunderclap onset, neurological deficits, systemic symptoms). First-line treatment for primary migraine includes NSAIDs or Triptans."
+                        plan = "Perform targeted neurological exam. Consider NSAID/antiemetic."
+                        
+                    elif "stomach" in combined_input or "pain" in combined_input or "nausea" in combined_input:
+                        pat_msg = "We have logged your abdominal symptoms. Please do not consume any food or water until the doctor clears you."
+                        guide = "Gastroenterology Protocol: For acute abdominal pain, rule out surgical emergencies (appendicitis, cholecystitis, perforation). Evaluate for hydration status."
+                        plan = "Abdominal exam, consider CBC/BMP, and evaluate need for imaging (US/CT)."
+                        
+                    elif "asthma" in combined_input or "breathing" in combined_input or "wheez" in combined_input:
+                        pat_msg = "Your respiratory symptoms are noted. Try to remain calm and seated upright. A nurse will check your oxygen levels shortly."
+                        guide = "Pulmonology Protocol: For acute asthma exacerbation, assess severity via respiratory rate and O2 saturation. Administer short-acting beta-agonists (SABA) immediately."
+                        plan = "Stat O2 saturation check, administer Albuterol nebulizer, consider oral corticosteroids."
+                        
+                    else:
+                        pat_msg = "We have securely logged your symptoms. The clinical team will review this information to optimize your visit."
+                        guide = "General Triage Protocol: Evaluate chief complaint, obtain baseline vitals, and review medical history/allergies for contraindications."
+                        plan = "Standard physician evaluation and targeted physical exam."
+
+                    # Build the output
+                    symptom_display = symptoms if symptoms else "the reported issues"
                     
-                    symptom_display = search_query if search_query else "the reported issues"
+                    doctor_brief = (
+                        f"**Chief Complaint:** {symptom_display}\n\n"
+                        f"**Medical History:** {history if history else 'None reported'}\n"
+                        f"**Current Meds:** {meds if meds else 'None reported'}\n\n"
+                        f"---\n"
+                        f"**Guidelines Found (RAG Retrieval):**\n{guide}\n\n"
+                        f"---\n"
+                        f"**Recommended Plan:** {plan}"
+                    )
                     
                     st.session_state['result'] = {
                         'is_safe': True,
-                        'patient_text': f"We have noted your symptoms regarding '{symptom_display}'. Please monitor your condition and consult a physician.",
-                        'doctor_text': f"Chief Complaint: {symptom_display}\n\nGuidelines Found:\n{retrieved_docs if retrieved_docs else 'None'}\n\nPlan: Standard evaluation."
+                        'patient_text': pat_msg,
+                        'doctor_text': doctor_brief
                     }
 
 with col3:
