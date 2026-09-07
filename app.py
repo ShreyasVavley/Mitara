@@ -10,7 +10,7 @@ def load_systems():
 
 ctx_engine, safety, rag = load_systems()
 
-st.set_page_config(page_title="Mitara AI", layout="wide")
+st.set_page_config(page_title="Mitara", layout="wide")
 
 # Bento Box CSS & Fix Input Colors
 st.markdown("""
@@ -70,7 +70,7 @@ st.markdown("""
 # Header Bento
 st.markdown("""
 <div class="bento-header">
-    <h1 style="margin:0; font-size: 28px;">Mitara AI</h1>
+    <h1 style="margin:0; font-size: 28px;">Mitara</h1>
     <p style="margin:0; color: #6b7280 !important; font-size: 16px;">Clinical Decision Support System</p>
 </div>
 """, unsafe_allow_html=True)
@@ -135,7 +135,7 @@ with col1:
                         f"**Medical History:** {history if history else 'None reported'}\n"
                         f"**Current Meds:** {meds if meds else 'None reported'}\n\n"
                         f"---\n"
-                        f"**Guidelines Found (RAG Retrieval):**\n{guide}\n\n"
+                        f"**Guidelines Found (Clinical Database):**\n{guide}\n\n"
                         f"---\n"
                         f"**Recommended Plan:** {plan}"
                     )
