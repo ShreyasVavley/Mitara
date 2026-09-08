@@ -102,7 +102,12 @@ with col1:
                     }
                 else:
                     # --- SMART CLINICAL SANDBOX ROUTER ---
-                    if "fever" in combined_input or "cough" in combined_input or "cold" in combined_input:
+                    if "neck stiffness" in combined_input or "meningitis" in combined_input or ("severe headache" in combined_input and "fever" in combined_input):
+                        pat_msg = "Your reported symptoms (fever, headache, neck stiffness) indicate a potentially serious condition. We have flagged this for immediate clinical review. Please wait for the physician."
+                        guide = "**[RAG Metadata: Topic: Meningitis | Source: WHO 2025 | Type: medical_guideline_reference]**\nClinical features match Meningitis reference (inflammation of the meninges). Safety Protocol Triggered: Severe neurological symptoms require prompt clinical assessment. Automated diagnosis disabled."
+                        plan = "URGENT CLINICIAN REVIEW REQUIRED. Evaluate for infectious vs. non-infectious etiology. Identify missing data per RAG guidelines (time of symptom onset, immune status, recent exposures)."
+                        
+                    elif "fever" in combined_input or "cough" in combined_input or "cold" in combined_input:
                         pat_msg = "We have noted your symptoms. Please wear a mask, stay hydrated, and rest while waiting for the physician."
                         guide = "Internal Medicine Protocol: For febrile respiratory illness, evaluate for viral vs. bacterial etiology. Consider rapid influenza/COVID-19 testing. Avoid antibiotics unless bacterial infection is suspected."
                         plan = "Check vitals, order rapid viral panel, recommend antipyretics."
