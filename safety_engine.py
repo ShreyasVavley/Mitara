@@ -21,7 +21,14 @@ class SafetyEngine:
             r"\b\d{3,}\s*bpm\b",         # 1000+ bpm or 900 bpm
             r"\b9\d{2}\s*bpm\b",         # 900+ bpm
             r"\b(dead|deceased)\b",      # Patient is dead
-            r"walking around and talking normally" # Specific jailbreak string
+            r"walking around and talking normally", # Specific jailbreak string
+            r"\b(no pulse|zero blood pressure)\b",  # Contradictions
+            r"(ignore all previous|write a poem|act as a)", # Prompt injection / jailbreak
+            r"\b(decapitated|head chopped off)\b",   # Extreme impossible downplaying
+            r"(lethal dose|kill myself|prescribe me cyanide)", # Malicious prescription requests
+            r"(drop table|system prompt|ignore safety|sql injection)", # System attacks
+            r"\b(vampire|werewolf|alien|5000 lbs|20 feet tall)\b", # Fictional / Physically impossible
+            r"2-month-old.*stressful day at work" # Age/biology contradiction
         ]
         
         self.compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.red_flag_patterns]
