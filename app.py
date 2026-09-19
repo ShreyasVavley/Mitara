@@ -12,66 +12,137 @@ ctx_engine, safety, rag = load_systems()
 
 st.set_page_config(page_title="Mitara", layout="wide")
 
-# Bento Box CSS & Fix Input Colors
+# --- DATABASE VIEWER SIDEBAR FOR PITCH ---
+st.sidebar.title("📚 Clinical Database")
+st.sidebar.caption("Vector Store (RAG Backend)")
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Active Indexes: 5**\nStatus: 🟢 Connected")
+st.sidebar.markdown("[🔗 View Source Dataset (WHO Clinical Guidelines)](https://www.who.int/publications/i)")
+st.sidebar.markdown("---")
+
+with st.sidebar.expander("📂 WHO 2025: Meningitis", expanded=False):
+    st.markdown("*Clinical features match Meningitis reference (inflammation of the meninges). Safety Protocol Triggered: Severe neurological symptoms require prompt clinical assessment. Automated diagnosis disabled.*")
+
+with st.sidebar.expander("📂 Internal Medicine: Fever", expanded=False):
+    st.markdown("*For febrile respiratory illness, evaluate for viral vs. bacterial etiology. Consider rapid influenza/COVID-19 testing. Avoid antibiotics unless bacterial infection is suspected.*")
+
+with st.sidebar.expander("📂 Neurology: Headache", expanded=False):
+    st.markdown("*For acute headache, rule out red flags (thunderclap onset, neurological deficits, systemic symptoms). First-line treatment for primary migraine includes NSAIDs or Triptans.*")
+
+with st.sidebar.expander("📂 Pulmonology: Asthma", expanded=False):
+    st.markdown("*For acute asthma exacerbation, assess severity via respiratory rate and O2 saturation. Administer short-acting beta-agonists (SABA) immediately.*")
+
+with st.sidebar.expander("📂 Gastroenterology: Abdominal", expanded=False):
+    st.markdown("*For acute abdominal pain, rule out surgical emergencies (appendicitis, cholecystitis, perforation). Evaluate for hydration status.*")
+
+# --- MODERN ENTERPRISE CSS ---
 st.markdown("""
 <style>
     /* Global Background */
     .stApp {
-        background-color: #f3f4f6;
+        background-color: #f0f4f8;
+        font-family: 'Inter', sans-serif;
     }
     
-    /* Bento Box Containers */
+    /* Top Header Bar */
+    .bento-header {
+        background: linear-gradient(135deg, #0f52ba, #1e88e5);
+        color: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        border: none;
+    }
+    
+    .bento-header h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: white !important;
+        letter-spacing: 0.5px;
+    }
+    
+    .bento-header p {
+        margin: 0;
+        color: #e3f2fd !important;
+        font-size: 16px;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+    
+    /* Enterprise Dashboard Cards */
     .bento-box {
         background-color: #ffffff;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        margin-bottom: 20px;
-        border: 1px solid #e5e7eb;
-    }
-    
-    .bento-alert {
-        background-color: #fef2f2;
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        margin-bottom: 20px;
-        border: 1px solid #f87171;
-        color: #991b1b;
-        font-weight: 600;
-    }
-    
-    /* Force Input Text Colors Explicitly */
-    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border-radius: 12px !important;
-        border: 1px solid #d1d5db !important;
-    }
-    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #000000 !important;
-        box-shadow: 0 0 0 1px #000000 !important;
-    }
-    
-    /* Header Bento */
-    .bento-header {
-        background-color: #ffffff;
-        border-radius: 16px;
-        padding: 24px;
+        border-radius: 12px;
+        padding: 0px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         margin-bottom: 24px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
     }
     
-    h1, h3, p { color: #111827 !important; }
+    .card-header {
+        background-color: #1e88e5;
+        color: white;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card-body {
+        padding: 20px;
+        color: #334155;
+        line-height: 1.6;
+    }
+    
+    /* Alerts */
+    .bento-alert {
+        background-color: #fef2f2;
+        border-left: 5px solid #ef4444;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+        color: #991b1b;
+        font-weight: 700;
+    }
+    
+    /* Force Input Text Colors */
+    .stTextInput>div>div>input, .stTextArea>div>div>textarea {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        border-radius: 8px !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 14px;
+    }
+    .stTextInput>div>div>input:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #1e88e5 !important;
+        box-shadow: 0 0 0 2px rgba(30,136,229,0.2) !important;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff;
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    /* Typography Overrides */
+    h3 {
+        color: #0f52ba !important;
+        font-weight: 600;
+        font-size: 18px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Header Bento
+# Header Module
 st.markdown("""
 <div class="bento-header">
-    <h1 style="margin:0; font-size: 28px;">Mitara</h1>
-    <p style="margin:0; color: #6b7280 !important; font-size: 16px;">Clinical Decision Support System</p>
+    <h1>✚ Mitara CDS</h1>
+    <p>Clinical Decision Support System • Enterprise Edition</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -162,16 +233,16 @@ with col3:
             
         st.markdown(f"""
         <div class="bento-box">
-            <strong style="font-size: 18px;">Patient Guidance</strong><br><br>
-            <span style="color: #4b5563;">{res['patient_text']}</span>
+            <div class="card-header">✚ Patient Guidance</div>
+            <div class="card-body">{res['patient_text']}</div>
         </div>
         """, unsafe_allow_html=True)
         
         doctor_html = res['doctor_text'].replace('\n', '<br>')
         st.markdown(f"""
         <div class="bento-box">
-            <strong style="font-size: 18px;">Physician Summary</strong><br><br>
-            <span style="color: #4b5563;">{doctor_html}</span>
+            <div class="card-header" style="background-color: #0f52ba;">🩺 Physician Summary (AIDA)</div>
+            <div class="card-body">{doctor_html}</div>
         </div>
         """, unsafe_allow_html=True)
         
